@@ -8,7 +8,7 @@ Usuario: Explora eventos, compra entradas, gestiona su perfil y descarga reporte
 
 Administrador: Gestiona eventos, recintos, zonas, asientos, usuarios, compras, incidencias y visualiza métricas.
 
-##Instrucciones para Compilar y Ejecutar
+## Instrucciones para Compilar y Ejecutar
 
 Compilar y Ejecutar (en el terminal)
 Usando Maven Wrapper
