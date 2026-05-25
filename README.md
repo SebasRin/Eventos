@@ -19,7 +19,7 @@ cd C:\ruta\del\proyecto\Eventos.\mvnw.cmd javafx:run
 # En Mac/Linux
 cd /ruta/del/proyecto/Eventos./mvnw javafx:run
 
-Patrones de Diseño Implementados
+# Patrones de Diseño Implementados
 Patrones Creacionales
 1. Singleton - GestorSistema
 Aspecto	Descripción
@@ -231,7 +231,7 @@ public class ComandoCancelarCompra implements IComandoCompra {
         System.out.println("[UNDO] Cancelación revertida");
     }
 }
-Principios SOLID Aplicados
+# Principios SOLID Aplicados
 1. Single Responsibility Principle (SRP)
 Ejemplo: CompraBuilder solo se encarga de construir compras, no de persistirlas ni notificar.
 
