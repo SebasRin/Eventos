@@ -11,7 +11,7 @@ Administrador: Gestiona eventos, recintos, zonas, asientos, usuarios, compras, i
 Instrucciones para Compilar y Ejecutar
 
 Compilar y Ejecutar (en el terminal)
-Opción 1: Usando Maven Wrapper
+Usando Maven Wrapper
 
 # En Windows
 cd C:\ruta\del\proyecto\Eventos.\mvnw.cmd javafx:run
