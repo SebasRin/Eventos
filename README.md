@@ -236,59 +236,143 @@ public class ComandoCancelarCompra implements IComandoCompra {
 Ejemplo: CompraBuilder solo se encarga de construir compras, no de persistirlas ni notificar.
 
 java
-// SRP: Solo construcción
+// SRP: Solo construccion
 public class CompraBuilder {
-    public Compra build() { ... }
+    private Usuario usuario;
+    private Evento evento;
+    private final List<Entrada> entradas = new ArrayList<>();
+    
+    public CompraBuilder setUsuario(Usuario u) { 
+        this.usuario = u; 
+        return this; 
+    }
+    
+    public CompraBuilder addEntrada(Entrada e) { 
+        entradas.add(e); 
+        return this; 
+    }
+    
+    public Compra build() {
+        validar();
+        return new Compra(usuario, evento, entradas, servicios);
+    }
+    
+    private void validar() {
+        if (usuario == null) throw new IllegalStateException("Usuario requerido");
+        if (evento == null) throw new IllegalStateException("Evento requerido");
+    }
+}
+Antes (violacion de SRP): La misma clase que construia tambien guardaba en base de datos y notificaba cambios.
+
+2. Open/Closed Principle (OCP)
+Ejemplo: EventoFactory permite agregar nuevos tipos de evento sin modificar codigo existente.
+
+java
+// Abierto para extension
+public abstract class EventoFactory {
+    public abstract Evento crearEvento(String nombre, String descripcion,
+                                       String ciudad, LocalDateTime fechaHora,
+                                       Recinto recinto);
 }
 
-//  Antes: La misma clase hacía todo
-// CompraBuilder guardaba, notificaba y construía
-2. Open/Closed Principle (OCP)
-Ejemplo: EventoFactory permite agregar nuevos tipos de evento sin modificar código existente.
+public class ConciertoFactory extends EventoFactory {
+    @Override
+    public Evento crearEvento(...) {
+        return new Evento(..., CategoriaEvento.CONCIERTO, ...);
+    }
+}
 
-java
-//  Abierto para extensión
-public class ConferenciaFactory extends EventoFactory { ... }
-public class TeatroFactory extends EventoFactory { ... }
+public class TeatroFactory extends EventoFactory {
+    @Override
+    public Evento crearEvento(...) {
+        return new Evento(..., CategoriaEvento.TEATRO, ...);
+    }
+}
 
-//  Cerrado para modificación - no necesitamos cambiar EventoFactory
+public class ConferenciaFactory extends EventoFactory {
+    @Override
+    public Evento crearEvento(...) {
+        return new Evento(..., CategoriaEvento.CONFERENCIA, ...);
+    }
+}
+Cerrado para modificacion: Para agregar un nuevo tipo de evento solo creamos una nueva fabrica, sin tocar EventoFactory.
+
 3. Liskov Substitution Principle (LSP)
-Ejemplo: Todas las estrategias de pago pueden reemplazar a IEstrategiaPago.
+Ejemplo: Todas las estrategias de pago pueden reemplazar a IEstrategiaPago sin alterar el comportamiento esperado.
 
 java
-//  Cualquier estrategia puede sustituir a IEstrategiaPago
-IEstrategiaPago pago = new PagoTarjeta("Visa", "1234");
-pago.pagar(100000);  // Funciona
-pago = new PagoPSE("Bancolombia");
-pago.pagar(100000);  // También funciona
-4. Interface Segregation Principle (ISP)
-Ejemplo: Interfaces específicas en lugar de una interfaz grande.
-
-java
-//  Interfaces segregadas
+// Cualquier estrategia puede sustituir a IEstrategiaPago
 public interface IEstrategiaPago {
     boolean pagar(double monto);
     boolean reembolsar(double monto);
+    String getDescripcion();
+}
+
+// Uso en cualquier contexto
+public void procesarPago(IEstrategiaPago estrategia, double monto) {
+    boolean ok = estrategia.pagar(monto);
+    if (ok) {
+        System.out.println("Pago exitoso: " + estrategia.getDescripcion());
+    }
+}
+
+// Todas estas llamadas funcionan correctamente
+procesarPago(new PagoTarjeta("Visa", "1234"), 100000);
+procesarPago(new PagoPSE("Bancolombia"), 100000);
+procesarPago(new PagoEfectivo(), 100000);
+Sin LSP: Si una subclase no pudiera manejar reembolsos, romperia el comportamiento esperado.
+
+4. Interface Segregation Principle (ISP)
+Ejemplo: Interfaces especificas y pequenas en lugar de una interfaz grande con metodos no relacionados.
+
+java
+// Interfaces segregadas y especificas
+public interface IEstrategiaPago {
+    boolean pagar(double monto);
+    boolean reembolsar(double monto);
+    String getDescripcion();
 }
 
 public interface IObservadorCompra {
     void compraActualizada(Compra compra, EstadoCompra anterior);
 }
 
-//  No tenemos una interfaz "IPagoTodo" con métodos no relacionados
+public interface IObservadorEvento {
+    void eventoActualizado(Evento evento, EstadoEvento estadoAnterior);
+}
+
+public interface IGeneradorReporte {
+    byte[] generar(List<Compra> compras, TipoReporte tipo,
+                   LocalDate desde, LocalDate hasta) throws Exception;
+}
+Antes (violacion de ISP): Una sola interfaz IObservador con metodos actualizarCompra(), actualizarEvento(), generarReporte() que forzaba a las clases a implementar metodos que no necesitaban.
+
 5. Dependency Inversion Principle (DIP)
 Ejemplo: PlataformaFacade depende de abstracciones (IGeneradorReporte) no de implementaciones concretas.
 
 java
-//  Depende de abstracción
-public byte[] generarReporte(..., String formato) {
-    IGeneradorReporte generador;
-    if ("PDF".equals(formato)) {
-        generador = new GeneradorPDF();  // Inyección en tiempo de ejecución
-    } else {
-        generador = new GeneradorCSV();
+// Depende de abstraccion, no de implementaciones concretas
+public class PlataformaFacade {
+    
+    public byte[] generarReporte(TipoReporte tipo,
+                                 LocalDate desde,
+                                 LocalDate hasta,
+                                 String formato) throws Exception {
+        
+        List<Compra> compras = GestorSistema.getInstance().compras().getAll();
+        
+        // Dependemos de la interfaz IGeneradorReporte
+        IGeneradorReporte generador;
+        
+        if ("PDF".equalsIgnoreCase(formato)) {
+            generador = new GeneradorPDF();  // Inyeccion en tiempo de ejecucion
+        } else {
+            generador = new GeneradorCSV();
+        }
+        
+        // El codigo solo conoce la abstraccion, no la implementacion concreta
+        return generador.generar(compras, tipo, desde, hasta);
     }
-    return generador.generar(...);
 }
+Antes (violacion de DIP): La clase dependia directamente de GeneradorPDF y GeneradorCSV con logica de seleccion dispersa.
 
-//  No depende directamente de clases concretas en toda la lógica
