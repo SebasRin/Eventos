@@ -68,6 +68,18 @@ public class Zona {
         return asientos;
     }
 
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public void setCapacidad(int capacidad) {
+        this.capacidad = capacidad;
+    }
+
+    public void setPrecioBase(double precioBase) {
+        this.precioBase = precioBase;
+    }
+
     @Override
     public String toString() { return nombre + " ($" + String.format("%.0f", precioBase) + ")"; }
 }
