@@ -8,15 +8,15 @@ Usuario: Explora eventos, compra entradas, gestiona su perfil y descarga reporte
 
 Administrador: Gestiona eventos, recintos, zonas, asientos, usuarios, compras, incidencias y visualiza métricas.
 
-Instrucciones para Compilar y Ejecutar
+##Instrucciones para Compilar y Ejecutar
 
 Compilar y Ejecutar (en el terminal)
 Usando Maven Wrapper
 
-## En Windows
+### En Windows
 cd C:\ruta\del\proyecto\Eventos.\mvnw.cmd javafx:run
 
-## En Mac/Linux
+### En Mac/Linux
 cd /ruta/del/proyecto/Eventos./mvnw javafx:run
 
 ## Patrones de Diseño Implementados
